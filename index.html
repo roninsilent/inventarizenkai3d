@@ -789,7 +789,14 @@ function saveLocal(){
   try{
     localStorage.setItem(LS_KEY, JSON.stringify(items));
     localStorage.setItem(LS_SET, JSON.stringify(settings));
-  }catch(e){}
+    return true;
+  }catch(e){
+    var full = e && (e.name==="QuotaExceededError" || e.code===22 || e.code===1014);
+    toast(full
+      ? "No s'ha pogut desar: el navegador ha omplert l'espai per a aquesta pàgina. Elimina alguna foto o exporta i buida l'inventari."
+      : "No s'ha pogut desar als teus dispositiu (emmagatzematge bloquejat).");
+    return false;
+  }
 }
 function loadLocal(){
   try{
@@ -1862,7 +1869,7 @@ function uploadPhoto(){
       return assetsNs.upload(b,{type:"image/jpeg"}).then(function(r){ return r&&r.id?{foto_id:r.id}:{}; },function(){ return {}; });
     }).catch(function(){ return {}; });
   }
-  return toBlob(shot.base,480,0.65).then(function(b){
+  return toBlob(shot.base,360,0.55).then(function(b){
     if(!b) return {};
     return blobToDataURL(b).then(function(du){ return {foto_data:du}; },function(){ return {}; });
   }).catch(function(){ return {}; });
@@ -1871,9 +1878,11 @@ function addDets(){
   if(!shot.dets.length) return;
   var btn=$("cam-add"), dets=shot.dets.slice();
   btn.disabled=true; btn.textContent="Desant…";
-  uploadPhoto().then(function(photo){
+  function finish(photo){
+    photo = photo||{};
     dets.forEach(function(d){
       var o=Object.assign({},d);
+      delete o.ocrLines;
       o.colors=d.colors.map(function(c){ return {hex:c.hex, nom:c.nom||null}; });
       o.color_hex=o.colors[0].hex;
       o.familia_color=familia(o.color_hex);
@@ -1886,7 +1895,8 @@ function addDets(){
     btn.disabled=false; btn.textContent="Afegeix a l'inventari";
     closeCam(); persist(); go("inventari");
     toast(dets.length+(dets.length===1?" bobina afegida":" bobines afegides"));
-  });
+  }
+  uploadPhoto().then(finish, function(){ finish({}); });
 }
 
 $("shoot").onclick=openShoot;
