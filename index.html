@@ -2106,7 +2106,7 @@ $g("gate-skip2").onclick=function(){ localStorage.setItem(SKIP_KEY,"1"); hideGat
 $g("gate-reconfig").onclick=function(){ localStorage.removeItem(CID_KEY); showSetup(); };
 $g("gate-signin").onclick=function(){
   if(!gTokenClient){ showLogin("Encara carregant… torna a tocar en un moment."); return; }
-  gTokenClient.requestAccessToken({prompt:"consent"});
+  gTokenClient.requestAccessToken({prompt:""});
 };
 $("acct-signout").onclick=function(){
   if(gToken && google.accounts.oauth2.revoke) google.accounts.oauth2.revoke(gToken,function(){});
